@@ -1,0 +1,12 @@
+nyc_taxi:
+  target: dev
+  outputs:
+    dev:
+      type: bigquery
+      method: service-account
+      project: data-curriculum-478510
+      dataset: nyc_taxi_silver
+      location: EU
+      keyfile: /opt/airflow/gcp-credentials.json
+      threads: 4
+      timeout_seconds: 300

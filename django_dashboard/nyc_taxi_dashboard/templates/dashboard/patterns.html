@@ -1,0 +1,25 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}Patterns - NYC Yellow Cab Analytics{% endblock %}
+
+{% block content %}
+<h1 class="text-3xl font-bold text-gray-800 mb-8">🕐 Trip Patterns</h1>
+
+<div class="chart-container">
+    {{ hourly_heatmap|safe }}
+</div>
+
+<div class="chart-container">
+    {{ distance_chart|safe }}
+</div>
+
+<!-- NYC Taxi Zones Map -->
+<div class="chart-container">
+    {{ locations_map|safe }}
+</div>
+
+<div class="chart-container">
+    {{ locations_chart|safe }}
+</div>
+
+{% endblock %}

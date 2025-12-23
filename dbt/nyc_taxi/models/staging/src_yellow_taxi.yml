@@ -1,0 +1,10 @@
+version: 2
+
+sources:
+  - name: bronze
+    database: data-curriculum-478510
+    schema: nyc_taxi_bronze
+    description: "Raw NYC Yellow Taxi data from GCS bucket (external table)"
+    tables:
+      - name: yellow_taxi_external
+        description: "External table pointing to parquet files in GCS"

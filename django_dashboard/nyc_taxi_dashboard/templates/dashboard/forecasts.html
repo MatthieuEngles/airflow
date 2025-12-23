@@ -1,0 +1,194 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}ML Forecasts - NYC Yellow Cab Analytics{% endblock %}
+
+{% block content %}
+<div class="flex justify-between items-center mb-8">
+    <h1 class="text-3xl font-bold text-gray-800">🤖 ML Demand Forecasts</h1>
+
+    <!-- Metric Selector -->
+    <div class="flex items-center space-x-4">
+        <label class="text-gray-600 font-medium">Forecast Metric:</label>
+        <select id="metric-selector" onchange="changeMetric(this.value)"
+                class="px-4 py-2 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-blue-500">
+            <option value="total_trips" {% if target_metric == 'total_trips' %}selected{% endif %}>Total Trips</option>
+            <option value="total_revenue" {% if target_metric == 'total_revenue' %}selected{% endif %}>Total Revenue</option>
+            <option value="avg_trip_revenue" {% if target_metric == 'avg_trip_revenue' %}selected{% endif %}>Avg Trip Revenue</option>
+        </select>
+    </div>
+</div>
+
+{% if model_info %}
+<!-- Best Model KPIs -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+    <div class="bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl p-6 text-white">
+        <p class="text-white/80 text-sm font-medium">Best Model</p>
+        <p class="text-2xl font-bold mt-1">{{ model_info.model_type|upper }}</p>
+        <p class="text-white/60 text-xs mt-2">For {{ target_metric }}</p>
+    </div>
+
+    <div class="bg-gradient-to-r from-green-500 to-green-600 rounded-xl p-6 text-white">
+        <p class="text-white/80 text-sm font-medium">MAPE</p>
+        <p class="text-2xl font-bold mt-1">{{ model_info.mape|floatformat:1 }}%</p>
+        <p class="text-white/60 text-xs mt-2">Mean Absolute % Error</p>
+    </div>
+
+    <div class="bg-gradient-to-r from-purple-500 to-purple-600 rounded-xl p-6 text-white">
+        <p class="text-white/80 text-sm font-medium">MAE</p>
+        <p class="text-2xl font-bold mt-1">{{ model_info.mae|floatformat:0 }}</p>
+        <p class="text-white/60 text-xs mt-2">Mean Absolute Error</p>
+    </div>
+
+    <div class="bg-gradient-to-r from-orange-500 to-orange-600 rounded-xl p-6 text-white">
+        <p class="text-white/80 text-sm font-medium">RMSE</p>
+        <p class="text-2xl font-bold mt-1">{{ model_info.rmse|floatformat:0 }}</p>
+        <p class="text-white/60 text-xs mt-2">Root Mean Square Error</p>
+    </div>
+</div>
+{% endif %}
+
+{% if has_forecast %}
+<!-- Main Forecast Chart -->
+<div class="chart-container">
+    {{ forecast_chart|safe }}
+</div>
+
+<!-- Accuracy Chart -->
+{% if accuracy_chart %}
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div class="chart-container">
+        {{ accuracy_chart|safe }}
+    </div>
+    <div class="chart-container">
+        {{ runs_history_chart|safe }}
+    </div>
+</div>
+{% endif %}
+{% else %}
+<!-- No Forecast Available -->
+<div class="bg-yellow-50 border border-yellow-200 rounded-xl p-8 mb-8 text-center">
+    <div class="text-5xl mb-4">📊</div>
+    <h2 class="text-xl font-bold text-yellow-800 mb-2">No Forecast Available</h2>
+    <p class="text-yellow-700 mb-4">
+        No ML model has been trained for <strong>{{ target_metric }}</strong> yet.
+    </p>
+    <p class="text-yellow-600 text-sm">
+        Run the <code class="bg-yellow-100 px-2 py-1 rounded">nyc_taxi_ml_forecasting</code> DAG in Airflow to generate forecasts.
+    </p>
+</div>
+{% endif %}
+
+<!-- Model Comparison -->
+<div class="chart-container">
+    <h2 class="text-xl font-bold text-gray-800 mb-4">Model Performance Comparison</h2>
+    {{ model_comparison_chart|safe }}
+</div>
+
+<!-- Recent ML Runs Table -->
+<div class="chart-container">
+    <h2 class="text-xl font-bold text-gray-800 mb-4">Recent ML Runs</h2>
+
+    {% if recent_runs %}
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Run</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Model</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Target</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Horizon</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">MAE</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">RMSE</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">MAPE</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                {% for run in recent_runs %}
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm font-medium text-gray-900">{{ run.run_name }}</div>
+                        <div class="text-xs text-gray-500">{{ run.start_time|date:"M d, Y H:i" }}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 py-1 text-xs font-medium rounded-full
+                            {% if run.model_type == 'prophet' %}bg-blue-100 text-blue-800
+                            {% elif run.model_type == 'xgboost' %}bg-orange-100 text-orange-800
+                            {% elif run.model_type == 'lightgbm' %}bg-red-100 text-red-800
+                            {% elif run.model_type == 'lstm' %}bg-purple-100 text-purple-800
+                            {% elif run.model_type == 'arima' %}bg-green-100 text-green-800
+                            {% else %}bg-gray-100 text-gray-800{% endif %}">
+                            {{ run.model_type|upper }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ run.target_metric }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ run.forecast_horizon }} days</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {% if run.mae %}{{ run.mae|floatformat:0 }}{% else %}-{% endif %}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {% if run.rmse %}{{ run.rmse|floatformat:0 }}{% else %}-{% endif %}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        {% if run.mape %}
+                        <span class="text-sm font-medium
+                            {% if run.mape < 10 %}text-green-600
+                            {% elif run.mape < 20 %}text-yellow-600
+                            {% else %}text-red-600{% endif %}">
+                            {{ run.mape|floatformat:1 }}%
+                        </span>
+                        {% else %}-{% endif %}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 py-1 text-xs font-medium rounded-full
+                            {% if run.status == 'FINISHED' %}bg-green-100 text-green-800
+                            {% elif run.status == 'RUNNING' %}bg-blue-100 text-blue-800
+                            {% else %}bg-red-100 text-red-800{% endif %}">
+                            {{ run.status }}
+                        </span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p class="text-gray-500 text-center py-8">No ML runs found. Run the forecasting DAG to see results here.</p>
+    {% endif %}
+</div>
+
+{% if registered_models %}
+<!-- Registered Models -->
+<div class="chart-container">
+    <h2 class="text-xl font-bold text-gray-800 mb-4">Registered Models (MLflow Model Registry)</h2>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {% for model in registered_models %}
+        <div class="border border-gray-200 rounded-lg p-4">
+            <h3 class="font-medium text-gray-800">{{ model.name }}</h3>
+            <p class="text-sm text-gray-500 mt-1">Version: {{ model.latest_version }}</p>
+            <span class="inline-block mt-2 px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
+                {{ model.stage|default:"None" }}
+            </span>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- MLflow Link -->
+<div class="text-center mt-8">
+    <a href="http://localhost:5555" target="_blank"
+       class="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition">
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+        </svg>
+        Open MLflow UI
+    </a>
+</div>
+
+<script>
+function changeMetric(metric) {
+    window.location.href = '{% url "forecasts" %}?metric=' + metric;
+}
+</script>
+{% endblock %}

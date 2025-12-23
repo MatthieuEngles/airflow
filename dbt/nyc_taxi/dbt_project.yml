@@ -1,0 +1,29 @@
+name: 'nyc_taxi'
+version: '1.0.0'
+config-version: 2
+
+profile: 'nyc_taxi'
+
+model-paths: ["models"]
+analysis-paths: ["analyses"]
+test-paths: ["tests"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+snapshot-paths: ["snapshots"]
+
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+vars:
+  gcp_project: "data-curriculum-478510"
+  bronze_bucket: "data-curriculum-478510-nyc-taxi-bronze"
+  silver_dataset: "nyc_taxi_silver"
+  gold_dataset: "nyc_taxi_gold"
+
+models:
+  nyc_taxi:
+    staging:
+      +materialized: view
+    silver:
+      +materialized: table

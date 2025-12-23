@@ -1,0 +1,134 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}Dashboard - NYC Yellow Cab Analytics{% endblock %}
+
+{% block content %}
+<!-- KPI Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <!-- Total Trips -->
+    <div class="kpi-card rounded-xl p-6 text-white">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-white/80 text-sm font-medium">Total Trips</p>
+                <p class="text-3xl font-bold mt-1">
+                    {% if kpis.total_trips >= 1000000000 %}
+                        {{ kpis.total_trips|floatformat:0|divisibleby:1000000000 }}B
+                    {% elif kpis.total_trips >= 1000000 %}
+                        {{ kpis.total_trips|divisibleby:1000000 }}M
+                    {% else %}
+                        {{ kpis.total_trips|floatformat:0 }}
+                    {% endif %}
+                </p>
+            </div>
+            <div class="text-4xl opacity-80">🚖</div>
+        </div>
+        <p class="text-white/60 text-xs mt-2">Since {{ kpis.data_start_date|date:"M Y" }}</p>
+    </div>
+
+    <!-- Total Revenue -->
+    <div class="kpi-card-green rounded-xl p-6 text-white">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-white/80 text-sm font-medium">Total Revenue</p>
+                <p class="text-3xl font-bold mt-1">
+                    ${% if kpis.total_revenue >= 1000000000 %}
+                        {{ kpis.total_revenue|floatformat:0|divisibleby:1000000000 }}B
+                    {% elif kpis.total_revenue >= 1000000 %}
+                        {{ kpis.total_revenue|divisibleby:1000000 }}M
+                    {% else %}
+                        {{ kpis.total_revenue|floatformat:0 }}
+                    {% endif %}
+                </p>
+            </div>
+            <div class="text-4xl opacity-80">💰</div>
+        </div>
+        <p class="text-white/60 text-xs mt-2">Avg ${{ kpis.avg_fare|floatformat:2 }} per trip</p>
+    </div>
+
+    <!-- Total Distance -->
+    <div class="kpi-card-orange rounded-xl p-6 text-white">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-white/80 text-sm font-medium">Total Distance</p>
+                <p class="text-3xl font-bold mt-1">
+                    {% if kpis.total_distance >= 1000000000 %}
+                        {{ kpis.total_distance|floatformat:0|divisibleby:1000000000 }}B
+                    {% elif kpis.total_distance >= 1000000 %}
+                        {{ kpis.total_distance|divisibleby:1000000 }}M
+                    {% else %}
+                        {{ kpis.total_distance|floatformat:0 }}
+                    {% endif %}
+                    mi
+                </p>
+            </div>
+            <div class="text-4xl opacity-80">📍</div>
+        </div>
+        <p class="text-white/60 text-xs mt-2">Miles traveled</p>
+    </div>
+
+    <!-- Average Tip -->
+    <div class="kpi-card-blue rounded-xl p-6 text-white">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-white/80 text-sm font-medium">Average Tip</p>
+                <p class="text-3xl font-bold mt-1">${{ kpis.avg_tip|floatformat:2 }}</p>
+            </div>
+            <div class="text-4xl opacity-80">💵</div>
+        </div>
+        <p class="text-white/60 text-xs mt-2">Per trip average</p>
+    </div>
+</div>
+
+<!-- Charts Row 1 -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div class="chart-container">
+        {{ monthly_trips_chart|safe }}
+    </div>
+    <div class="chart-container">
+        {{ monthly_revenue_chart|safe }}
+    </div>
+</div>
+
+<!-- Charts Row 2 -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div class="chart-container">
+        {{ hourly_heatmap|safe }}
+    </div>
+    <div class="chart-container">
+        {{ payment_pie_chart|safe }}
+    </div>
+</div>
+
+<!-- Charts Row 3 -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div class="chart-container">
+        {{ distance_chart|safe }}
+    </div>
+    <div class="chart-container">
+        {{ vendor_chart|safe }}
+    </div>
+</div>
+
+<!-- Full Width Charts -->
+<div class="chart-container">
+    {{ yoy_chart|safe }}
+</div>
+
+<div class="chart-container">
+    {{ daily_chart|safe }}
+</div>
+
+<div class="chart-container">
+    {{ avg_metrics_chart|safe }}
+</div>
+
+<!-- NYC Taxi Zones Map -->
+<div class="chart-container">
+    {{ locations_map|safe }}
+</div>
+
+<div class="chart-container">
+    {{ tip_chart|safe }}
+</div>
+
+{% endblock %}

@@ -1,0 +1,78 @@
+# Claude Code
+.claude/
+
+# Credentials and secrets
+gcp-credentials.json
+*.json
+!dbt/profiles.json
+*.pem
+*.key
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+.venv/
+venv/
+ENV/
+
+# Airflow
+airflow.db
+airflow.cfg
+logs/
+*.log
+
+# dbt
+dbt/target/
+dbt/dbt_packages/
+dbt/logs/
+
+# Django
+django_dashboard/db.sqlite3
+django_dashboard/staticfiles/
+django_dashboard/*.log
+
+# MLflow
+mlruns/
+mlartifacts/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+/tmp/
+
+# Compiled requirements (keep requirements.in)
+# requirements.txt  # Uncomment if you only want requirements.in tracked

@@ -672,6 +672,7 @@ WHERE total_trips > 100              # Évite les jours quasi-vides
 - Docker & Docker Compose
 - Compte Google Cloud avec BigQuery activé
 - Fichier `gcp-credentials.json`
+- **Instance MLflow en fonctionnement** (MLflow n'est pas instancié dans ce projet)
 
 ### Démarrage
 
